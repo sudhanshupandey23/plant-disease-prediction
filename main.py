@@ -157,7 +157,7 @@ elif app_mode == "Disease Recognition":
     test_image = st.file_uploader("Upload an image of a plant leaf:", type=["jpg", "jpeg", "png"])
 
     if test_image is not None:
-        st.image(test_image, caption="Uploaded Image", use_column_width=True)
+        st.image(test_image, caption="Uploaded Image", use_container_width=True)
         st.success("✅ Image uploaded successfully!")
 
         # Predict button
