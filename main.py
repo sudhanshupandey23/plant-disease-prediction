@@ -1,6 +1,6 @@
-
 import streamlit as st
 import numpy as np
+import tensorflow as tf  # ✅ Import TensorFlow
 from PIL import Image
 import time
 
@@ -62,7 +62,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# Tensorflow Model Prediction
+# Load and predict with TensorFlow model
 def model_prediction(test_image):
     """
     Predict the plant disease using the trained model.
@@ -70,27 +70,22 @@ def model_prediction(test_image):
     try:
         model = tf.keras.models.load_model("trained_model.h5")
         image = Image.open(test_image)
-        image = image.resize((128, 128))  # Resize the image to match model input size
+        image = image.resize((128, 128))  # Resize image
         input_arr = tf.keras.preprocessing.image.img_to_array(image)
-        input_arr = np.array([input_arr])  # Convert single image to batch
+        input_arr = input_arr / 255.0  # Normalize
+        input_arr = np.array([input_arr])  # Convert to batch
         predictions = model.predict(input_arr)
-        return np.argmax(predictions)  # Return index of max element
+        return np.argmax(predictions)
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None
 
-# Sidebar
+# Sidebar Navigation
 st.sidebar.title("🌱 Plant Disease Recognition")
-st.sidebar.markdown("""
-    **Navigate through the app using the options below:**
-""")
-app_mode = st.sidebar.radio(
-    "Select Page",
-    ["Home", "About", "Disease Recognition"],
-    index=0
-)
+st.sidebar.markdown("**Navigate through the app using the options below:**")
+app_mode = st.sidebar.radio("Select Page", ["Home", "About", "Disease Recognition"], index=0)
 
-# Main Page
+# Home Page
 if app_mode == "Home":
     st.title("🌿 Welcome to the Plant Disease Recognition System!")
     st.markdown("""
@@ -100,9 +95,7 @@ if app_mode == "Home":
         </p>
     </div>
     """, unsafe_allow_html=True)
-
-    st.image("home_page.jpeg", use_column_width=True, caption="Healthy Plants, Healthy Future")
-
+    st.image("home_page.jpeg", use_container_width=True, caption="Healthy Plants, Healthy Future")
     st.markdown("""
     ### 🚀 How It Works
     1. **Upload Image:** Go to the **Disease Recognition** page and upload an image of a plant with suspected diseases.
@@ -118,7 +111,7 @@ if app_mode == "Home":
     Click on the **Disease Recognition** page in the sidebar to upload an image and experience the power of our system!
     """)
 
-# About Project
+# About Page
 elif app_mode == "About":
     st.title("📚 About")
     st.markdown("""
@@ -126,7 +119,6 @@ elif app_mode == "About":
         This project aims to help farmers and gardeners identify plant diseases early and accurately. By leveraging machine learning, we provide a tool that can analyze images of plant leaves and detect diseases with high precision.
     </div>
     """, unsafe_allow_html=True)
-
     st.markdown("""
     #### 📂 About the Dataset
     - The dataset consists of **87,000 RGB images** of healthy and diseased crop leaves.
@@ -135,9 +127,7 @@ elif app_mode == "About":
         - **Training Set:** 70,295 images
         - **Validation Set:** 17,572 images
         - **Test Set:** 33 images
-    """)
 
-    st.markdown("""
     #### 🛠️ Technologies Used
     - **TensorFlow:** For building and training the deep learning model.
     - **Streamlit:** For creating this interactive web application.
@@ -153,14 +143,12 @@ elif app_mode == "Disease Recognition":
     </div>
     """, unsafe_allow_html=True)
 
-    # File Uploader
     test_image = st.file_uploader("Upload an image of a plant leaf:", type=["jpg", "jpeg", "png"])
 
     if test_image is not None:
-        st.image(test_image, caption="Uploaded Image", use_column_width=True)
+        st.image(test_image, caption="Uploaded Image", use_container_width=True)
         st.success("✅ Image uploaded successfully!")
 
-        # Predict button
         if st.button("Predict Disease"):
             with st.spinner("🔬 Analyzing the image. Please wait..."):
                 result_index = model_prediction(test_image)
@@ -183,6 +171,11 @@ elif app_mode == "Disease Recognition":
                         'Tomato___Target_Spot', 'Tomato___Tomato_Yellow_Leaf_Curl_Virus', 'Tomato___Tomato_mosaic_virus',
                         'Tomato___healthy'
                     ]
-                    st.success(f"**Prediction:** The model predicts that the plant is affected by **{class_name[result_index]}**.")
+                    prediction = class_name[result_index]
+                    st.success(f"**Prediction:** The model predicts that the plant is affected by **{prediction}**.")
+                    if "healthy" in prediction.lower():
+                        st.info("🌿 The plant appears to be healthy. No disease detected.")
+                    else:
+                        st.warning("⚠️ Disease detected. Please take preventive measures or consult an expert.")
                 else:
                     st.error("❌ Failed to make a prediction. Please try again.")
