@@ -6,4 +6,4 @@ seaborn
 pandas
 streamlit
 librosa
-tensorflow
+tensorflow==2.12.0
